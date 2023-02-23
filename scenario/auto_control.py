@@ -355,18 +355,6 @@ class World(object):
         if self.player is not None:
             self.player.destroy()
 
-    def cutdown_speed(self):
-        self.player_max_speed = self.player_max_speed/20
-        self.player_max_speed_fast = self.player_max_speed_fast/20
-
-    def double_speed(self):
-        self.player_max_speed = self.player_max_speed*20
-        self.player_max_speed_fast = self.player_max_speed_fast*20
-
-
-
-activated_anomaly_set = set([])
-activated_anomaly_list = []
 
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
@@ -392,9 +380,13 @@ class KeyboardControl(object):
         world.hud.notification("Press 'H' or '?' for help.", seconds=4.0)
 
     def parse_events(self, client, world, clock, sync_mode):
-        global anomaly_active1
-        global anomaly_active2
-        global anomaly_active3  
+        global anomaly1_triggered
+        global anomaly2_triggered
+        global anomaly3_triggered 
+        global light_active1
+        global light_active2
+        global light_active3
+        global engine
         if isinstance(self._control, carla.VehicleControl):
             current_lights = self._lights
         for event in pygame.event.get():
@@ -438,64 +430,52 @@ class KeyboardControl(object):
                 elif event.key == K_n:
                     world.camera_manager.next_sensor()
                 elif event.key == K_KP7:
-                    if anomaly_active1:
-                        anomaly_active1 = False
+                    if anomaly1_triggered or light_active1:
+                        anomaly1_triggered = False
+                        light_active1 = False
+                        pygame.mixer.Sound('Sounds\\button.wav').play()
                         f=open(logfile,'a')
                         f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+anomaly_name1+" has been taken action by user.\n")
                         f.close()
-                    else:
-                        f=open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : The user doubt the anomaly "+anomaly_name1+" is a false negative signal,and want to check this.\n")
-                        f.close()
                 elif event.key == K_KP8:
-                    if anomaly_active2:
-                        anomaly_active2 = False
+                    if anomaly2_triggered or light_active2:
+                        anomaly2_triggered = False
+                        light_active2 = False
+                        pygame.mixer.Sound('Sounds\\button.wav').play()
                         f=open(logfile,'a')
                         f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+anomaly_name2+" has been taken action by user.\n")
                         f.close()
-                    else:
-                        f=open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : The user doubt the anomaly "+anomaly_name2+" is a false negative signal,and want to check this.\n")
-                        f.close()
                 elif event.key == K_KP9:
-                    if anomaly_active3:
-                        anomaly_active3 = False
+                    if anomaly3_triggered or light_active3:
+                        anomaly3_triggered = False
+                        light_active3 = False
+                        pygame.mixer.Sound('Sounds\\button.wav').play()
                         f=open(logfile,'a')
                         f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+anomaly_name3+" has been taken action by user.\n")
-                        f.close()
-                    else:
-                        f=open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : The user doubt the anomaly "+anomaly_name3+" is a false negative signal,and want to check this.\n")
-                        f.close()
+                        f.close() 
                 elif event.key == K_KP1:
-                    if anomaly_active1:
-                        anomaly_active1 = False
+                    if anomaly1_triggered or light_active1:
+                        anomaly1_triggered = False
+                        light_active1 = False
+                        pygame.mixer.Sound('Sounds\\button.wav').play()
                         f=open(logfile,'a')
                         f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+anomaly_name1+" has been ignored by user.\n")
                         f.close()
-                    else:
-                        f=open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : The user doubt the anomaly "+anomaly_name1+" is a false negative signal,but want to ingore it.\n")
-                        f.close()
                 elif event.key == K_KP2:
-                    if anomaly_active2:
-                        anomaly_active2 = False
+                    if anomaly2_triggered or light_active2:
+                        anomaly2_triggered = False
+                        light_active2 = False
+                        pygame.mixer.Sound('Sounds\\button.wav').play()
                         f=open(logfile,'a')
                         f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+anomaly_name2+" has been ignored by user.\n")
                         f.close()
-                    else:
-                        f=open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : The user doubt the anomaly "+anomaly_name2+" is a false negative signal,but want to ingore it.\n")
-                        f.close()
                 elif event.key == K_KP3:
-                    if anomaly_active3:
-                        anomaly_active3 = False
+                    if anomaly3_triggered or light_active3:
+                        anomaly3_triggered = False
+                        light_active3 = False
+                        pygame.mixer.Sound('Sounds\\button.wav').play()
                         f=open(logfile,'a')
                         f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+anomaly_name3+" has been ignored by user.\n")
-                        f.close()
-                    else:
-                        f=open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : The user doubt the anomaly "+anomaly_name3+" is a false negative signal,but want to ingore it.\n")
                         f.close()
                 elif event.key == K_w and (pygame.key.get_mods() & KMOD_CTRL):
                     if world.constant_velocity_enabled:
@@ -1120,7 +1100,8 @@ class CameraManager(object):
 
         if not self._parent.type_id.startswith("walker.pedestrian"):
             self._camera_transforms = [
-                (carla.Transform(carla.Location(x=0.0*bound_x, y=-0.1*bound_y, z=1.2*bound_z)), Attachment.Rigid)]
+                (carla.Transform(carla.Location(x=0.0*bound_x, y=-0.1*bound_y, z=1.2*bound_z)), Attachment.Rigid),
+                (carla.Transform(carla.Location(x=-2.0*bound_x, y=0.0*bound_y, z=2.0*bound_z),carla.Rotation(pitch=-8.0)), Attachment.Rigid)]
         else:
             self._camera_transforms = [
                 (carla.Transform(carla.Location(x=-2.5, z=0.0), carla.Rotation(pitch=-8.0)), Attachment.SpringArm),
@@ -1257,20 +1238,27 @@ logfile = ""
 anomaly_name1 = ""
 anomaly_name2 = ""
 anomaly_name3 = ""
-anomaly_active1 = False 
-anomaly_active2 = False 
-anomaly_active3 = False 
+anomaly1_triggered = False
+anomaly2_triggered = False
+anomaly3_triggered = False
+light_active1 = False
+light_active2 = False
+light_active3 = False
 # ==============================================================================
 # -- game_loop() ---------------------------------------------------------------
 # ==============================================================================
 def game_loop(args):
     global logfile
-    global anomaly_active1
-    global anomaly_active2
-    global anomaly_active3
+    global anomaly1_triggered
+    global anomaly2_triggered
+    global anomaly3_triggered
     global anomaly_name1
     global anomaly_name2
     global anomaly_name3
+    global light_active1
+    global light_active2
+    global light_active3
+    global engine
     logfile = args.log
     anomaly_name1 = args.an1
     anomaly_name2 = args.an2
@@ -1311,6 +1299,7 @@ def game_loop(args):
         hud = HUD(args.width, args.height)
         world = World(sim_world, hud, args)
         controller = KeyboardControl(world, args.autopilot)
+        tm = client.get_trafficmanager()
 
         if args.sync:
             sim_world.tick()
@@ -1324,9 +1313,6 @@ def game_loop(args):
         counter,text = float(args.t),args.t
         font = pygame.font.SysFont('Consolas', 15)
 
-        counter_aap1 = int(args.aap1)
-        counter_aap2 = int(args.aap2)
-        counter_aap3 = int(args.aap3)
         counter_scenario1_launch = 60
         autopilot_isOn = False
         speed_is_reduced = False
@@ -1334,6 +1320,13 @@ def game_loop(args):
         anomaly1_triggered = False
         anomaly2_triggered = False
         anomaly3_triggered = False
+
+        sim_time = int(args.t)
+        grate = float(args.gen)
+        fprate = float(args.fp)
+        fnrate = float(args.fn)
+
+        normal_speed = world.player_max_speed
 
         icon_door = pygame.image.load("icons\\door.png")
         icon_seatbelt = pygame.image.load("icons\\seatbelt.png")
@@ -1343,6 +1336,11 @@ def game_loop(args):
         icon_brake = pygame.image.load("icons\\brake.png")
         icon_blank = pygame.image.load("icons\\blank.png")
 
+        mark = 0
+        round_slow = 5
+        round_fast = 10
+
+        # Special scenario 1
         if args.s == 'scenario_1':
             f = open(logfile,'a')
             f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+" : Simulation begins!\n")
@@ -1356,102 +1354,158 @@ def game_loop(args):
                 world.tick(clock)
                 world.render(display)
                 counter -= 0.01
-                counter_aap1 -= 0.01
-                counter_aap2 -= 0.01
-                counter_aap3 -= 0.01
-                counter_scenario1_launch -= 0.01
-                if not anomaly1_triggered and counter_aap1 <= 0:
-                    anomaly1_triggered = True
-                    if args.at1 == 'yes':
-                        anomaly_active1 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" really happened.\n")
-                        f.close()
-                    elif args.at1 == 'fp':
-                        anomaly_active1 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" not really happened,it is false possitive.\n")
-                        f.close()
-                    elif args.at1 == 'no':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" not happened.\n")
-                        f.close()
-                    elif args.at1 == 'fn':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" light is off,it is false negative.\n")
-                        f.close()
-                if not anomaly2_triggered and counter_aap2 <= 0:
-                    anomaly2_triggered = True
-                    if args.at2 == 'yes':
-                        anomaly_active2 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" really happened.\n")
-                        f.close()
-                    elif args.at2 == 'fp':
-                        anomaly_active2 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" not really happened,it is false possitive.\n")
-                        f.close()
-                    elif args.at2 == 'no':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" not happened.\n")
-                        f.close()
-                    elif args.at2 == 'fn':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" light is off,it is false negative.\n")
-                        f.close()
+                if counter_scenario1_launch > 0:
+                    counter_scenario1_launch -= 0.01
+                    roll_a1 = random.randint(0,sim_time*100)
+                    roll_a2 = random.randint(0,sim_time*100)
+                    roll_a3 = random.randint(0,sim_time*100)
+                    roll_fp1 = random.randint(0,sim_time*100)
+                    roll_fp2 = random.randint(0,sim_time*100)
+                    roll_fp3 = random.randint(0,sim_time*100)
+                    roll_fn1 = random.randint(0,100)
+                    roll_fn2 = random.randint(0,100)
+                    roll_fn3 = random.randint(0,100)
+                    # trigger anomaly 1
+                    if roll_a1 < grate and not anomaly1_triggered:
+                        anomaly1_triggered = True
+                        pygame.mixer.Sound('Sounds\\buttonuser.mp3').play()
+                        if roll_fn1 < fnrate:
+                            light_active1 = False
+                            # false negative
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" is false negative.\n")
+                            f.close()
+                        else:
+                            light_active1 = True
+                            # true anomaly
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" really happened.\n")
+                            f.close()
+                    # not trigger anomaly 1
+                    if roll_a1 >= grate and not anomaly1_triggered:
+                        if roll_fp1 < fprate:
+                            light_active1 = True
+                            # false positive
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" plays false positive.\n")
+                            f.close()
+                        # otherwise normal
+                            
+                        
+                    # trigger anomaly 2
+                    if roll_a2 < grate and not anomaly2_triggered:
+                        anomaly2_triggered = True
+                        pygame.mixer.Sound('Sounds\\buttonuser.mp3').play()
+                        if roll_fn2 < fnrate:
+                            light_active2 = False
+                            # false negative
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" is false negative.\n")
+                            f.close()
+                        else:
+                            light_active2 = True
+                            # true anomaly
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" really happened.\n")
+                            f.close()
+                    # not trigger anomaly 2
+                    if roll_a2 >= grate and not anomaly2_triggered:
+                        if roll_fp2 < fprate:
+                            light_active2 = True
+                            # false positive
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" plays false positive.\n")
+                            f.close()
+                        # otherwise normal
 
-                if not anomaly3_triggered and counter_aap3 <= 0:
-                    anomaly3_triggered = True
-                    if args.at3 == 'yes':
-                        anomaly_active3 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" really happened.\n")
-                        f.close()
-                    elif args.at3 == 'fp':
-                        anomaly_active3 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" not really happened,it is false possitive.\n")
-                        f.close()
-                    elif args.at3 == 'no':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" not happened.\n")
-                        f.close()
-                    elif args.at3 == 'fn':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" light is off,it is false negative.\n")
-                        f.close()
-
-                if not anomaly_active1 and not anomaly_active2 and not anomaly_active3 and counter_scenario1_launch <= 0 and not autopilot_isOn:
+                    # trigger anomaly 3
+                    if roll_a3 < grate and not anomaly3_triggered:
+                        anomaly3_triggered = True
+                        pygame.mixer.Sound('Sounds\\buttonuser.mp3').play()
+                        if roll_fn3 < fnrate:
+                            light_active3 = False
+                            # false negative
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" is false negative.\n")
+                            f.close()
+                        else:
+                            light_active3 = True
+                            # true anomaly
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" really happened.\n")
+                            f.close()
+                    # not trigger anomaly 3
+                    if roll_a3 >= grate and not anomaly3_triggered:
+                        if roll_fp3 < fprate:
+                            light_active3 = True
+                            # false positive
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" plays false positive.\n")
+                            f.close()
+                        # otherwise normal
+                else:
+                    counter_scenario1_launch = 0
+                
+                if not anomaly2_triggered and counter_scenario1_launch <= 0 and not autopilot_isOn:
                     autopilot_isOn = True
                     world.player.set_autopilot(True)
-
 
                 if counter <= 0:
                     sys.exit()
                 display.blit(font.render('Simulation time remaining:'+str(format(counter,'.2f')), True, (255, 255, 255)), (940, 520))
-                display.blit(font.render('To take actions:key (Num7) (Num8) (Num9)', True, (255, 255, 255)), (940, 560))
-                display.blit(icon_blank,(940,580))
-                display.blit(icon_blank,(1040,580))
-                display.blit(icon_blank,(1140,580))
-                display.blit(font.render('To ignore anomaly:key (Num1) (Num2) (Num3)', True, (255, 255, 255)), (940, 680))
-                if anomaly_active1:
-                    display.blit(icon_door,(940,580))
+                display.blit(font.render('To change camera:Press TAB ', True, (255, 255, 255)), (940, 540))
+                display.blit(font.render('Take actions:Press (Num7) (Num8) (Num9)', True, (255, 255, 255)), (940, 560))
+                display.blit(font.render('Ignore      :Press (Num1) (Num2) (Num3)', True, (255, 255, 255)), (940, 580))
+                display.blit(icon_blank,(940,600))
+                display.blit(icon_blank,(1040,600))
+                display.blit(icon_blank,(1140,600))
+                if anomaly1_triggered:
+                    world.player.open_door(carla.VehicleDoor.FR)
+                    if light_active1:
+                        display.blit(icon_door,(940,600))
+                    else:
+                        display.blit(icon_blank,(940,600))
                 else:
-                    display.blit(icon_blank,(940,580))
-                if anomaly_active2:
-                    display.blit(icon_seatbelt,(1040,580))
+                    world.player.close_door(carla.VehicleDoor.All)
+                    if light_active1:
+                        display.blit(icon_door,(940,600))
+                    else:
+                        display.blit(icon_blank,(940,600))
+                if anomaly2_triggered:
+                    if light_active2:
+                        display.blit(icon_seatbelt,(1040,600))
+                    else:
+                        display.blit(icon_blank,(1040,600))
                 else:
-                    display.blit(icon_blank,(1040,580))
-                if anomaly_active3:
-                    display.blit(icon_coolant,(1140,580))
-                else:
-                    display.blit(icon_blank,(1140,580))
+                    if light_active2:
+                        display.blit(icon_seatbelt,(1040,600))
+                    else:
+                        display.blit(icon_blank,(1040,600))
+                if anomaly3_triggered:
+                    mark += 0.01
+                    if mark < round_slow:
+                        tm.vehicle_percentage_speed_difference(world.player,90)
+                    if mark >= round_slow and mark < round_fast:
+                        tm.vehicle_percentage_speed_difference(world.player,-50)
+                    if mark > round_fast:
+                        mark = 0
+                    if light_active3:
+                        display.blit(icon_coolant,(1140,600))
+                    else:
+                        display.blit(icon_blank,(1140,600))
+                else:         
+                    tm.vehicle_percentage_speed_difference(world.player,0)
+                    if light_active3:
+                        display.blit(icon_coolant,(1140,600))
+                    else:
+                        display.blit(icon_blank,(1140,600))
                 pygame.display.flip()
+        # Scenario 2,3,4
         else:
             f = open(logfile,'a')
             f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+" : Simulation begins!\n")
             f.close()
+            world.player.set_autopilot(True)
             while True:
                 if args.sync:
                     sim_world.tick()
@@ -1461,104 +1515,156 @@ def game_loop(args):
                 world.tick(clock)
                 world.render(display)
                 counter -= 0.01
-                counter_aap1 -= 0.01
-                counter_aap2 -= 0.01
-                counter_aap3 -= 0.01
-                if not autopilot_isOn:
-                    autopilot_isOn = True
-                    world.player.set_autopilot(True)
-                if not anomaly1_triggered and counter_aap1 <= 0:
-                    anomaly1_triggered = True
-                    if args.at1 == 'yes':
-                        anomaly_active1 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" really happened.\n")
-                        f.close()
-                    elif args.at1 == 'fp':
-                        anomaly_active1 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" not really happened,it is false possitive.\n")
-                        f.close()
-                    elif args.at1 == 'no':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" not happened.\n")
-                        f.close()
-                    elif args.at1 == 'fn':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" light is off,it is false negative.\n")
-                        f.close()
-                if not anomaly2_triggered and counter_aap2 <= 0:
-                    anomaly2_triggered = True
-                    if args.at2 == 'yes':
-                        anomaly_active2 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" really happened.\n")
-                        f.close()
-                    elif args.at2 == 'fp':
-                        anomaly_active2 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" not really happened,it is false possitive.\n")
-                        f.close()
-                    elif args.at2 == 'no':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" not happened.\n")
-                        f.close()
-                    elif args.at2 == 'fn':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" light is off,it is false negative.\n")
-                        f.close()
+                if counter_scenario1_launch > 0:
+                    counter_scenario1_launch -= 0.01
+                    roll_a1 = random.randint(0,sim_time*100)
+                    roll_a2 = random.randint(0,sim_time*100)
+                    roll_a3 = random.randint(0,sim_time*100)
+                    roll_fp1 = random.randint(0,sim_time*100)
+                    roll_fp2 = random.randint(0,sim_time*100)
+                    roll_fp3 = random.randint(0,sim_time*100)
+                    roll_fn1 = random.randint(0,100)
+                    roll_fn2 = random.randint(0,100)
+                    roll_fn3 = random.randint(0,100)
+                    # trigger anomaly 1
+                    if roll_a1 < grate and not anomaly1_triggered:
+                        anomaly1_triggered = True
+                        pygame.mixer.Sound('Sounds\\buttonuser.mp3').play()
+                        if roll_fn1 < fnrate:
+                            light_active1 = False
+                            # false negative
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" is false negative.\n")
+                            f.close()
+                        else:
+                            light_active1 = True
+                            # true anomaly
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" really happened.\n")
+                            f.close()
+                    # not trigger anomaly 1
+                    if roll_a1 >= grate and not anomaly1_triggered:
+                        if roll_fp1 < fprate:
+                            light_active1 = True
+                            # false positive
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an1+" plays false positive.\n")
+                            f.close()
+                        # otherwise normal
+                            
+                        
+                    # trigger anomaly 2
+                    if roll_a2 < grate and not anomaly2_triggered:
+                        anomaly2_triggered = True
+                        pygame.mixer.Sound('Sounds\\buttonuser.mp3').play()
+                        if roll_fn2 < fnrate:
+                            light_active2 = False
+                            # false negative
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" is false negative.\n")
+                            f.close()
+                        else:
+                            light_active2 = True
+                            # true anomaly
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" really happened.\n")
+                            f.close()
+                    # not trigger anomaly 2
+                    if roll_a2 >= grate and not anomaly2_triggered:
+                        if roll_fp2 < fprate:
+                            light_active2 = True
+                            # false positive
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an2+" plays false positive.\n")
+                            f.close()
+                        # otherwise normal
 
-                if not anomaly3_triggered and counter_aap3 <= 0:
-                    anomaly3_triggered = True
-                    if args.at3 == 'yes':
-                        anomaly_active3 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" really happened.\n")
-                        f.close()
-                    elif args.at3 == 'fp':
-                        anomaly_active3 = True
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" not really happened,it is false possitive.\n")
-                        f.close()
-                    elif args.at3 == 'no':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" not happened.\n")
-                        f.close()
-                    elif args.at3 == 'fn':
-                        f = open(logfile,'a')
-                        f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" light is off,it is false negative.\n")
-                        f.close()
-
-                # behavior of the anomaly vehicle,speed cutdown
-                if (anomaly_active1 or anomaly_active2 or anomaly_active3) and not speed_is_reduced:
-                    speed_is_reduced = True
-                    world.cutdown_speed()
-                if not anomaly_active1 and not anomaly_active2 and not anomaly_active3 and speed_is_reduced:
-                    speed_is_reduced = False
-                    world.double_speed()
-                
+                    # trigger anomaly 3
+                    if roll_a3 < grate and not anomaly3_triggered:
+                        anomaly3_triggered = True
+                        pygame.mixer.Sound('Sounds\\buttonuser.mp3').play()
+                        if roll_fn3 < fnrate:
+                            light_active3 = False
+                            # false negative
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" is false negative.\n")
+                            f.close()
+                        else:
+                            light_active3 = True
+                            # true anomaly
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" really happened.\n")
+                            f.close()
+                    # not trigger anomaly 3
+                    if roll_a3 >= grate and not anomaly3_triggered:
+                        if roll_fp3 < fprate:
+                            light_active3 = True
+                            # false positive
+                            f = open(logfile,'a')
+                            f.write(time.strftime("\n%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomaly "+args.an3+" plays false positive.\n")
+                            f.close()
+                        # otherwise normal
+                else:
+                    counter_scenario1_launch = 0
 
                 if counter <= 0:
                     sys.exit()
                 display.blit(font.render('Simulation time remaining:'+str(format(counter,'.2f')), True, (255, 255, 255)), (940, 520))
-                display.blit(font.render('To take actions:key (Num7) (Num8) (Num9)', True, (255, 255, 255)), (940, 560))
-                display.blit(icon_blank,(940,580))
-                display.blit(icon_blank,(1040,580))
-                display.blit(icon_blank,(1140,580))
-                display.blit(font.render('To ignore anomaly:key (Num1) (Num2) (Num3)', True, (255, 255, 255)), (940, 680))
-                if anomaly_active1:
-                    display.blit(icon_engine,(940,580))
+                display.blit(font.render('To change camera:Press TAB ', True, (255, 255, 255)), (940, 540))
+                display.blit(font.render('Take actions:Press (Num7) (Num8) (Num9)', True, (255, 255, 255)), (940, 560))
+                display.blit(font.render('Ignore      :Press (Num1) (Num2) (Num3)', True, (255, 255, 255)), (940, 580))
+                display.blit(icon_blank,(940,600))
+                display.blit(icon_blank,(1040,600))
+                display.blit(icon_blank,(1140,600))
+
+                if anomaly1_triggered:
+                    tm.vehicle_percentage_speed_difference(world.player,100)
+                    if light_active1:
+                        display.blit(icon_engine,(940,600))
+                    else:
+                        display.blit(icon_blank,(940,600))
                 else:
-                    display.blit(icon_blank,(940,580))
-                if anomaly_active2:
-                    display.blit(icon_fuel,(1040,580))
+                    if light_active1:
+                        display.blit(icon_engine,(940,600))
+                    else:
+                        display.blit(icon_blank,(940,600))
+
+                if anomaly2_triggered:
+                    if anomaly1_triggered:
+                        tm.vehicle_percentage_speed_difference(world.player,100)
+                        if light_active2:
+                            display.blit(icon_fuel,(1040,600))
+                        else:
+                            display.blit(icon_blank,(1040,600))
+                    else:
+                        tm.vehicle_percentage_speed_difference(world.player,90)
+                        if light_active2:
+                            display.blit(icon_fuel,(1040,600))
+                        else:
+                            display.blit(icon_blank,(1040,600))
                 else:
-                    display.blit(icon_blank,(1040,580))
-                if anomaly_active3:
-                    display.blit(icon_brake,(1140,580))
+                        if light_active2:
+                            display.blit(icon_fuel,(1040,600))
+                        else:
+                            display.blit(icon_blank,(1040,600))
+
+                if anomaly3_triggered:
+                    tm.ignore_lights_percentage(world.player, 100)
+                    if light_active3:
+                        display.blit(icon_brake,(1140,600))
+                    else:
+                        display.blit(icon_blank,(1140,600))
                 else:
-                    display.blit(icon_blank,(1140,580))
-                
+                    if light_active3:
+                        display.blit(icon_brake,(1140,600))
+                    else:
+                        display.blit(icon_blank,(1140,600))
+
+                if not anomaly1_triggered and not anomaly2_triggered:
+                    tm.vehicle_percentage_speed_difference(world.player,0)
+                if not anomaly3_triggered:
+                    tm.ignore_lights_percentage(world.player,0)
+
                 pygame.display.flip()
 
     finally:
@@ -1642,35 +1748,28 @@ def main():
         '--an1',
         help='anomaly name 1')
     argparser.add_argument(
-        '--at1', 
-        help='anomaly type 1')
-    argparser.add_argument(
-        '--aap1', 
-        help='anomaly appear time point 1')
-    argparser.add_argument(
-        '--an2',
+        '--an2', 
         help='anomaly name 2')
     argparser.add_argument(
-        '--at2', 
-        help='anomaly type 2')
-    argparser.add_argument(
-        '--aap2', 
-        help='anomaly appear time point 2')
-    argparser.add_argument(
-        '--an3',
+        '--an3', 
         help='anomaly name 3')
     argparser.add_argument(
-        '--at3', 
-        help='anomaly type 3')
+        '--gen', 
+        help='anomaly generation rate')
     argparser.add_argument(
-        '--aap3', 
-        help='anomaly appear time point 3')
+        '--fp', 
+        help='false positive rate')
+    argparser.add_argument(
+        '--fn', 
+        help='false negative rate')
     argparser.add_argument(
         '--log', 
         help='logfile name')
     args = argparser.parse_args()
 
     args.width, args.height = [int(x) for x in args.res.split('x')]
+
+
 
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)

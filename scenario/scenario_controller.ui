@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>491</width>
-    <height>603</height>
+    <width>657</width>
+    <height>770</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,8 +75,8 @@
   <widget class="QPushButton" name="generate_scenario">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>560</y>
+     <x>510</x>
+     <y>720</y>
      <width>101</width>
      <height>23</height>
     </rect>
@@ -98,8 +98,8 @@
   <widget class="QComboBox" name="situations">
    <property name="geometry">
     <rect>
-     <x>378</x>
-     <y>100</y>
+     <x>538</x>
+     <y>90</y>
      <width>71</width>
      <height>22</height>
     </rect>
@@ -121,8 +121,8 @@
   <widget class="QLabel" name="label_9">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>100</y>
+     <x>420</x>
+     <y>90</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -135,7 +135,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>560</y>
+     <y>720</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -147,8 +147,8 @@
   <widget class="QLabel" name="label_10">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>60</y>
+     <x>420</x>
+     <y>50</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -162,8 +162,8 @@
     <rect>
      <x>40</x>
      <y>180</y>
-     <width>411</width>
-     <height>181</height>
+     <width>571</width>
+     <height>151</height>
     </rect>
    </property>
    <property name="html">
@@ -177,8 +177,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QLineEdit" name="times">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>60</y>
+     <x>540</x>
+     <y>50</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -188,108 +188,147 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>390</y>
+     <y>550</y>
      <width>161</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Possibility of anomaly generation</string>
+    <string>Anomaly generation rate</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>430</y>
+     <y>590</y>
      <width>161</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Possibility of false positive</string>
+    <string>False possitive rate</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>470</y>
+     <y>630</y>
      <width>161</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Possibility of false negative</string>
+    <string>False negative rate</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="anomaly_possibility">
+  <widget class="QComboBox" name="comboBox">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>390</y>
-     <width>113</width>
-     <height>20</height>
+     <x>430</x>
+     <y>550</y>
+     <width>181</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="false_positive">
+  <widget class="QComboBox" name="comboBox_2">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>430</y>
-     <width>113</width>
-     <height>20</height>
+     <x>430</x>
+     <y>590</y>
+     <width>181</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="false_negative">
+  <widget class="QComboBox" name="comboBox_3">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>470</y>
-     <width>113</width>
-     <height>20</height>
+     <x>430</x>
+     <y>630</y>
+     <width>181</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_11">
+  <widget class="QLabel" name="anomaly_1">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>390</y>
-     <width>51</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>%</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_12">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>430</y>
-     <width>51</width>
-     <height>16</height>
+     <x>110</x>
+     <y>355</y>
+     <width>300</width>
+     <height>30</height>
     </rect>
    </property>
    <property name="text">
-    <string>%</string>
+    <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="label_13">
+  <widget class="QLabel" name="anomaly_2">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>470</y>
-     <width>51</width>
-     <height>16</height>
+     <x>110</x>
+     <y>425</y>
+     <width>300</width>
+     <height>30</height>
     </rect>
    </property>
    <property name="text">
-    <string>%</string>
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="anomaly_3">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>495</y>
+     <width>300</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="icon_1">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>340</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="icon_2">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>410</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="icon_3">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>480</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>

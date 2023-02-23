@@ -18,56 +18,7 @@ import carla
 import random
 import time
 
-anomaly_to_gen = []
-
 simu_time = 0
-
-def decide_time_point(anomalies,simutime):
-    for a in anomalies:
-        if a['name'] == 'door':
-            point = random.randint(10,50)
-            a['time_point'] = point
-        if a['name'] == 'seatbelt':
-            point = random.randint(10,50)
-            a['time_point'] = point
-        if a['name'] == 'coolant':
-            point = random.randint(10,50)
-            a['time_point'] = point
-        if a['name'] == 'engine':
-            point = random.randint(simu_time//5,simu_time*4//5)
-            a['time_point'] = point
-        if a['name'] == 'fuel':
-            point = random.randint(simu_time//5,simu_time*4//5)
-            a['time_point'] = point
-        if a['name'] == 'brake':
-            point = random.randint(simu_time//5,simu_time*4//5)
-            a['time_point'] = point
-
-def decide_anomalies(scenario,possibility,fp,fn):
-    for a in scenario['anomalies']:
-        # anomaly really happened
-        number = random.uniform(0,100)
-        if number <= possibility :
-            false_negative = random.uniform(0,100)
-            if false_negative > fn :
-                # false negative not happened
-                anomaly = {'name':a,'status':'yes','time_point':0}
-                anomaly_to_gen.append(anomaly)
-            else:
-                # false negative happened
-                anomaly = {'name':a,'status':'fn','time_point':0}
-                anomaly_to_gen.append(anomaly)
-        else:
-        # anomaly not happened
-            false_possitive = random.uniform(0,100)
-            if false_possitive > fp :
-                # false possitive not happened
-                anomaly = {'name':a,'status':'no','time_point':0}
-                anomaly_to_gen.append(anomaly)
-            else:
-                # false possitive happened
-                anomaly = {'name':a,'status':'fp','time_point':0}
-                anomaly_to_gen.append(anomaly)
 
 actor_list = []
 def generate_traffic(situation):
@@ -75,6 +26,17 @@ def generate_traffic(situation):
     client.set_timeout(30)
     world = client.get_world()
     blueprint_library = world.get_blueprint_library()
+    if situation == 'very smooth':
+        for i in range (0,len(world.get_map().get_spawn_points())//16):
+            bp = random.choice(blueprint_library.filter('vehicle'))
+            if bp.has_attribute('color'):
+                color = random.choice(bp.get_attribute('color').recommended_values)
+                bp.set_attribute('color', color)
+            transform = world.get_map().get_spawn_points()[i]
+            vehicle = world.try_spawn_actor(bp, transform)
+            actor_list.append(vehicle)
+            print('created %s' % vehicle.type_id)
+            vehicle.set_autopilot(True)
     if situation == 'smooth':
         for i in range (0,len(world.get_map().get_spawn_points())//8):
             bp = random.choice(blueprint_library.filter('vehicle'))
@@ -86,8 +48,19 @@ def generate_traffic(situation):
             actor_list.append(vehicle)
             print('created %s' % vehicle.type_id)
             vehicle.set_autopilot(True)
-    else:
+    if situation == 'heavy':
         for i in range (0,len(world.get_map().get_spawn_points())//4):
+            bp = random.choice(blueprint_library.filter('vehicle'))
+            if bp.has_attribute('color'):
+                color = random.choice(bp.get_attribute('color').recommended_values)
+                bp.set_attribute('color', color)
+            transform = world.get_map().get_spawn_points()[i]
+            vehicle = world.try_spawn_actor(bp, transform)
+            actor_list.append(vehicle)
+            print('created %s' % vehicle.type_id)
+            vehicle.set_autopilot(True)
+    if situation == 'very heavy':
+        for i in range (0,len(world.get_map().get_spawn_points())//2):
             bp = random.choice(blueprint_library.filter('vehicle'))
             if bp.has_attribute('color'):
                 color = random.choice(bp.get_attribute('color').recommended_values)
@@ -104,8 +77,28 @@ def mkdir(path):
     if not isExist:
         os.makedirs(path)
 
+# decide anomalies
+def decide_anomaly(s):
+    if s['name'] == 'scenario_1':
+        return 'door','seatbelt','coolant'
+    else:
+        return 'engine','fuel','brake'
+
+# decide possibilities
+def decide_rate(p):
+    if p == "never":
+        return 0
+    elif p == "low(recommended)":
+        return 3
+    elif p == "medium":
+        return 6
+    elif p == "high":
+        return 10
+    else:
+        return simu_time*100
+
 # code frame core to manipulate carla
-def generate_scenario(scenario,map,weather,stime,traffic,anomaly,fpositive,fnegative):
+def generate_scenario(scenario,map,weather,stime,traffic,genrate,fprate,fnrate):
     global simu_time
     mkdir(os.getcwd()+"\\logs")
     files = os.walk(os.getcwd()+"\\logs")
@@ -122,8 +115,8 @@ def generate_scenario(scenario,map,weather,stime,traffic,anomaly,fpositive,fnega
     world.set_weather(eval("carla.WeatherParameters."+weather))
     simu_time = stime*60
     file.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+" : Parameters decided...\n")
-    decide_anomalies(scenario,anomaly,fpositive,fnegative)
-    decide_time_point(anomaly_to_gen,simu_time)
+    a1,a2,a3 = decide_anomaly(scenario)
+    gen,fp,fn = decide_rate(genrate),decide_rate(fprate),decide_rate(fnrate)
     generate_traffic(traffic)
     file.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+" : Anomalies set and traffic set...\n")
 
@@ -134,18 +127,15 @@ def generate_scenario(scenario,map,weather,stime,traffic,anomaly,fpositive,fnega
     os.system("python "+cpath+"\\scenario\\auto_control.py "
               +" --s="+scenario['name']
               +" --t="+str(simu_time)
-              +" --an1="+anomaly_to_gen[0]['name']
-              +" --at1="+anomaly_to_gen[0]['status']
-              +" --aap1="+str(anomaly_to_gen[0]['time_point'])
-              +" --an2="+anomaly_to_gen[1]['name']
-              +" --at2="+anomaly_to_gen[1]['status']
-              +" --aap2="+str(anomaly_to_gen[1]['time_point'])
-              +" --an3="+anomaly_to_gen[2]['name']
-              +" --at3="+anomaly_to_gen[2]['status']
-              +" --aap3="+str(anomaly_to_gen[2]['time_point'])
+              +" --an1="+a1
+              +" --an2="+a2
+              +" --an3="+a3
+              +" --gen="+str(gen)
+              +" --fp="+str(fp)
+              +" --fn="+str(fn)
               +" --log="+os.getcwd()+"\\logs\\log_file(username)-"+str(nr)+".txt"
               )
-    time.sleep(5)
+
     print('destroying actors')
     client.apply_batch([carla.command.DestroyActor(x) for x in actor_list])
     print('done.')

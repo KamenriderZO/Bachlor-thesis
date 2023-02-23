@@ -1,4 +1,2 @@
 @echo off
-cd scenario
-python scenario_controller.py
-pause
+python %~dp0\Scenario\scenario_controller.py
