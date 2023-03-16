@@ -19,8 +19,8 @@ import random
 import time
 
 simu_time = 0
-
 actor_list = []
+# generate traffic
 def generate_traffic(situation):
     client = carla.Client('localhost',2000)
     client.set_timeout(30)
@@ -85,6 +85,7 @@ def decide_anomaly(s):
         return 'engine','fuel','brake'
 
 # decide possibilities
+# designed as possibilities and expectations
 def decide_rate(p):
     if p == "never":
         return 0
@@ -123,7 +124,7 @@ def generate_scenario(scenario,map,weather,stime,traffic,genrate,fprate,fnrate):
     file.close()
 
     cpath = os.getcwd()
-
+    # deliver parameters to auto_control.py which creates the game window
     os.system("python "+cpath+"\\scenario\\auto_control.py "
               +" --s="+scenario['name']
               +" --t="+str(simu_time)
@@ -139,9 +140,9 @@ def generate_scenario(scenario,map,weather,stime,traffic,genrate,fprate,fnrate):
     print('destroying actors')
     client.apply_batch([carla.command.DestroyActor(x) for x in actor_list])
     print('done.')
-    f = open(os.getcwd()+"\\logs\\log_file(username)-"+str(nr)+".txt","a")
-    f.write("Simulation complete.")
-    f.close()
+    # f = open(os.getcwd()+"\\logs\\log_file(username)-"+str(nr)+".txt","a")
+    # f.write("Simulation complete.")
+    # f.close()
 
 
 

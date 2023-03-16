@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 
-
+# Scenario Controller
 class Ui_Controller(object):
     map_list = []
     weather_list = []
@@ -24,7 +24,7 @@ class Ui_Controller(object):
     anomaly_pos = ""
     false_pos = ""
     false_neg = ""
-
+    # PYQT UI setup
     def setupUi(self, Controller):
         Controller.setObjectName("Controller")
         Controller.resize(657, 770)
@@ -149,6 +149,7 @@ class Ui_Controller(object):
         self.label_5.setText(_translate("Controller", "False possitive rate"))
         self.label_6.setText(_translate("Controller", "False negative rate"))
 
+    # get scenario from GUI
     def decide_scenario(self):
         self.current_scenario = eval("scenario_data."+self.scenarios.currentText())
         if self.current_scenario['name'] == "Nothing":
@@ -304,7 +305,7 @@ class Ui_Controller(object):
             self.icon_2.setScaledContents(True)
             self.icon_3.resize(60,60)
             self.icon_3.setScaledContents(True)
-
+    # get map from GUI
     def decide_map(self):
         self.current_map = self.maps.currentText()
         if self.current_map == "Town01":
@@ -332,12 +333,15 @@ class Ui_Controller(object):
             self.des_map = scenario_data.map_info10
             self.descriptions.setText(self.des_sce+"\n\n"+self.des_map)
 
+    # get traffic from GUI
     def decide_traffic(self):
         self.current_traffic = self.situations.currentText()
 
+    # get weather from GUI
     def decide_weather(self):
         self.current_weather = self.weathers.currentText()
 
+    # prepare paramters to scenario generator
     def decide_final(self):
         if self.current_scenario['name'] != "Nothing":
             if self.times.text() != "":
