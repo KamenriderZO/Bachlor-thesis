@@ -63,3 +63,9 @@ This means how frequently a fake signal light will be given.(Normal vehicle but 
 ### False negative rate
 This is a part of accuracy of the anomaly detection.Higher value means worse accuracy.<br>
 This means how possible if an anomaly is generated but the detector didn't notice that.(Abnormal vehicle but no signal light)
+
+## Bugs and Cautions
+Vehicle crush with each other.<br>
+It's normal. No AI is perfect.Carla vehicles also make mistakes.Just escape the simulation and restart new one.<br>
+Recommended traffic situation is below or equals to smooth.<br>
+Traffic accidents may appear more when too many NPCs in the map.
